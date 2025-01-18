@@ -27,7 +27,9 @@
 /* USER CODE BEGIN Includes */
 
 /* USER CODE END Includes */
-
+#include "hagl.h"
+#include "font6x9.h"
+#include "rgb565.h"
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
 
@@ -57,7 +59,13 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-
+void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi)
+{
+	if (hspi == &hspi2)
+	{
+		lcd_transfer_done();
+	}
+}
 /* USER CODE END 0 */
 
 /**
@@ -98,6 +106,12 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+  lcd_init();
+  for (int i = 0; i < 8; i++) {
+    hagl_draw_rounded_rectangle(2+i, 2+i, 158-i, 126-i, 8-i, rgb565(0, 0, i*16));
+  }
+  hagl_put_text(L"Hello World!", 40, 55, YELLOW, font6x9);
+  lcd_copy();
   while (1)
   {
     /* USER CODE END WHILE */
