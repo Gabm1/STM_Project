@@ -56,6 +56,8 @@
 /* USER CODE BEGIN PV */
 int light =0;
 int32_t value = 0;
+int mode = 0;
+int pulse = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -144,17 +146,19 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-    int mode = 0;
-    int pulse = 0;
+
 
   while (1)
   {
 
 	  HAL_Delay(10);
 	    	if (mode==1){
-	    		pulse=pulse+10;
+	    		pulse = (pulse + 10 > 10000) ? 10000 : pulse + 10;
 	    	} else {
-	    		pulse=pulse-10;
+	    		pulse -= 10; // Decrease pulse by 10
+	    		        if (pulse < 0) {
+	    		            pulse = 0; // Clamp pulse to 0
+	    		        }
 	    	}
 	    	if (light >= value) {
 	    		mode = 0;
