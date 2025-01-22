@@ -19,6 +19,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "dma.h"
+#include "i2c.h"
 #include "spi.h"
 #include "tim.h"
 #include "usart.h"
@@ -32,6 +33,7 @@
 #include "hagl.h"
 #include "font6x9.h"
 #include "rgb565.h"
+#include "bh1750_config.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -70,6 +72,25 @@ void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi)
 		lcd_transfer_done();
 	}
 }
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+	if(htim==&htim6){
+
+				hagl_fill_rectangle(30, 45, 80, 100, BLACK);
+				int32_t value = __HAL_TIM_GET_COUNTER(&htim3);
+				wchar_t str[10];
+				swprintf(str, sizeof(str) / sizeof(wchar_t), L"%d", value);
+				hagl_put_text(str, 40, 55, YELLOW, font6x9);
+				int light =0;
+				light = BH1750_ReadIlluminance_lux(&hbh1750A);
+				wchar_t lig[10];
+				swprintf(lig, sizeof(lig) / sizeof(wchar_t), L"%d", light);
+				hagl_put_text(lig, 40, 85, RED, font6x9);
+				while (lcd_is_busy()) {}
+				lcd_copy();
+
+	}
+}
 /* USER CODE END 0 */
 
 /**
@@ -105,38 +126,27 @@ int main(void)
   MX_USART2_UART_Init();
   MX_SPI2_Init();
   MX_TIM3_Init();
+  MX_I2C1_Init();
+  MX_TIM6_Init();
   /* USER CODE BEGIN 2 */
+  lcd_init();
+    HAL_TIM_Encoder_Start(&htim3, TIM_CHANNEL_ALL);
+    HAL_TIM_Base_Start_IT(&htim6);
 
+    BH1750_Init(&hbh1750A);
+    for (int i = 0; i < 8; i++) {
+      hagl_draw_rounded_rectangle(2+i, 2+i, 158-i, 126-i, 8-i, rgb565(0, 0, i*16));
+    }
+    lcd_copy();
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  lcd_init();
-  HAL_TIM_Encoder_Start(&htim3, TIM_CHANNEL_ALL);
-  int32_t prev_value =0;
-  for (int i = 0; i < 8; i++) {
-    hagl_draw_rounded_rectangle(2+i, 2+i, 158-i, 126-i, 8-i, rgb565(0, 0, i*16));
-  }
-  lcd_copy();
+
 
   while (1)
   {
-	  while (lcd_is_busy()) {}
-	  int32_t value = __HAL_TIM_GET_COUNTER(&htim3);
-	  if (value != prev_value){
-		  wchar_t str[10]; // Buffer to hold the string representation of the value
-		  swprintf(str, sizeof(str) / sizeof(wchar_t), L"%d", value);
-		 // wchar_t tekst[] = L"SET:";
-		  wchar_t set_value[20];
-		  wcscpy(set_value, str);
-		  //wcscat(set_value, tekst);
 
-
-		  hagl_put_text(set_value, 40, 55, YELLOW, font6x9);
-		  while (lcd_is_busy()) {}
-		  	  		  lcd_copy();
-		  prev_value = value;
-	  }
 
     /* USER CODE END WHILE */
 
