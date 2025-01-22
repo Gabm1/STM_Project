@@ -54,7 +54,8 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-
+int light =0;
+int32_t value = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -77,11 +78,10 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 	if(htim==&htim6){
 
 				hagl_fill_rectangle(30, 45, 80, 100, BLACK);
-				int32_t value = __HAL_TIM_GET_COUNTER(&htim3);
+				value =10* __HAL_TIM_GET_COUNTER(&htim3);
 				wchar_t str[10];
 				swprintf(str, sizeof(str) / sizeof(wchar_t), L"%d", value);
 				hagl_put_text(str, 40, 55, YELLOW, font6x9);
-				int light =0;
 				light = BH1750_ReadIlluminance_lux(&hbh1750A);
 				wchar_t lig[10];
 				swprintf(lig, sizeof(lig) / sizeof(wchar_t), L"%d", light);
@@ -128,11 +128,13 @@ int main(void)
   MX_TIM3_Init();
   MX_I2C1_Init();
   MX_TIM6_Init();
+  MX_TIM1_Init();
   /* USER CODE BEGIN 2 */
   lcd_init();
     HAL_TIM_Encoder_Start(&htim3, TIM_CHANNEL_ALL);
     HAL_TIM_Base_Start_IT(&htim6);
 
+    HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
     BH1750_Init(&hbh1750A);
     for (int i = 0; i < 8; i++) {
       hagl_draw_rounded_rectangle(2+i, 2+i, 158-i, 126-i, 8-i, rgb565(0, 0, i*16));
@@ -142,16 +144,30 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-
+    int mode = 0;
+    int pulse = 0;
 
   while (1)
   {
 
-
+	  HAL_Delay(10);
+	    	if (mode==1){
+	    		pulse=pulse+10;
+	    	} else {
+	    		pulse=pulse-10;
+	    	}
+	    	if (light >= value) {
+	    		mode = 0;
+	    	}
+	    	if (light < value) {
+	    		mode = 1;
+	    	}
+	    	TIM1->CCR1 = pulse;
+}
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-  }
+
   /* USER CODE END 3 */
 }
 
