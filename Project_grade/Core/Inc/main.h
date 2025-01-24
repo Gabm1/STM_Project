@@ -69,6 +69,14 @@ void Error_Handler(void);
 #define LCD_DC_GPIO_Port GPIOB
 #define LCD_CS_Pin GPIO_PIN_12
 #define LCD_CS_GPIO_Port GPIOB
+#define Engine_IN1_Pin GPIO_PIN_6
+#define Engine_IN1_GPIO_Port GPIOC
+#define Engine_IN2_Pin GPIO_PIN_7
+#define Engine_IN2_GPIO_Port GPIOC
+#define Engine_IN3_Pin GPIO_PIN_8
+#define Engine_IN3_GPIO_Port GPIOC
+#define Engine_IN4_Pin GPIO_PIN_9
+#define Engine_IN4_GPIO_Port GPIOC
 #define TMS_Pin GPIO_PIN_13
 #define TMS_GPIO_Port GPIOA
 #define TCK_Pin GPIO_PIN_14

@@ -58,6 +58,8 @@ int light =0;
 int32_t value = 0;
 int mode = 0;
 int pulse = 0;
+float currentAngle = 0;
+#define stepsperrev 4096
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -91,6 +93,117 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 				while (lcd_is_busy()) {}
 				lcd_copy();
 
+	}
+}
+void delay (uint16_t us)
+{
+  __HAL_TIM_SET_COUNTER(&htim15, 0);
+  while (__HAL_TIM_GET_COUNTER(&htim15) < us);
+}
+void stepper_set_rpm (int rpm)  // Set rpm--> max 13, min 1,,,  went to 14 rev/min
+{
+	delay(60000000/stepsperrev/rpm);
+}
+void stepper_half_drive (int step)
+{
+  switch (step){
+         case 0:
+		  HAL_GPIO_WritePin(Engine_IN1_GPIO_Port, Engine_IN1_Pin,SET);   // IN1
+		  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_2, GPIO_PIN_RESET);   // IN2
+		  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_3, GPIO_PIN_RESET);   // IN3
+		  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_RESET);   // IN4
+		  break;
+
+	  case 1:
+		  HAL_GPIO_WritePin(Engine_IN1_GPIO_Port, Engine_IN1_Pin,SET);   // IN1
+		  HAL_GPIO_WritePin(Engine_IN2_GPIO_Port, Engine_IN2_Pin,SET);   // IN2
+		  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_3, GPIO_PIN_RESET);   // IN3
+		  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_RESET);   // IN4
+		  break;
+
+          case 2:
+		  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_1, GPIO_PIN_RESET);   // IN1
+		  HAL_GPIO_WritePin(Engine_IN2_GPIO_Port, Engine_IN2_Pin,SET);   // IN2
+		  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_3, GPIO_PIN_RESET);   // IN3
+		  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_RESET);   // IN4
+		  break;
+
+	  case 3:
+		  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_1, GPIO_PIN_RESET);   // IN1
+		  HAL_GPIO_WritePin(Engine_IN2_GPIO_Port, Engine_IN2_Pin,SET);   // IN2
+		  HAL_GPIO_WritePin(Engine_IN3_GPIO_Port, Engine_IN3_Pin,SET);   // IN3
+		  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_RESET);   // IN4
+		  break;
+
+	  case 4:
+		  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_1, GPIO_PIN_RESET);   // IN1
+		  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_2, GPIO_PIN_RESET);   // IN2
+		  HAL_GPIO_WritePin(Engine_IN3_GPIO_Port, Engine_IN3_Pin,SET);   // IN3
+		  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_RESET);   // IN4
+		  break;
+
+	  case 5:
+		  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_1, GPIO_PIN_RESET);   // IN1
+		  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_2, GPIO_PIN_RESET);   // IN2
+		  HAL_GPIO_WritePin(Engine_IN3_GPIO_Port, Engine_IN3_Pin,SET);   // IN3
+		  HAL_GPIO_WritePin(Engine_IN4_GPIO_Port, Engine_IN4_Pin,SET);   // IN4
+		  break;
+
+	  case 6:
+		  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_1, GPIO_PIN_RESET);   // IN1
+		  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_2, GPIO_PIN_RESET);   // IN2
+		  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_3, GPIO_PIN_RESET);   // IN3
+		  HAL_GPIO_WritePin(Engine_IN4_GPIO_Port, Engine_IN4_Pin,SET);   // IN4
+		  break;
+
+	  case 7:
+		  HAL_GPIO_WritePin(Engine_IN1_GPIO_Port, Engine_IN1_Pin,SET);   // IN1
+		  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_2, GPIO_PIN_RESET);   // IN2
+		  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_3, GPIO_PIN_RESET);   // IN3
+		  HAL_GPIO_WritePin(Engine_IN4_GPIO_Port, Engine_IN4_Pin,SET);   // IN4
+		  break;
+
+	}
+}
+void stepper_step_angle (float angle, int direction, int rpm) //direction-> 0 for CK, 1 for CCK
+{
+  float anglepersequence = 0.703125;  // 360 = 512 sequences
+  int numberofsequences = (int) (angle/anglepersequence);
+  for (int seq=0; seq<numberofsequences; seq++)
+  {
+	if (direction == 0)  // for clockwise
+	{
+       	  for (int step=7; step>=0; step--)
+	  {
+	    stepper_half_drive(step);
+	    stepper_set_rpm(rpm);
+	  }
+	}
+	else if (direction == 1)  // for anti-clockwise
+	{
+	  for (int step=0; step<=7; step++)
+	  {
+	    stepper_half_drive(step);
+	    stepper_set_rpm(rpm);
+	  }
+	}
+  }
+}
+
+void Stepper_rotate (int angle, int rpm)
+{
+	int changeinangle = 0;
+	changeinangle = angle-currentAngle;  // calculate the angle by which the motor needed to be rotated
+	if (changeinangle > 0.71)  // clockwise
+	{
+		stepper_step_angle (changeinangle,0,rpm);
+		currentAngle = angle;  // save the angle as current angle
+	}
+	else if (changeinangle <0.71) // CCK
+	{
+		changeinangle = -(changeinangle);
+		stepper_step_angle (changeinangle,1,rpm);
+		currentAngle = angle;
 	}
 }
 /* USER CODE END 0 */
@@ -131,11 +244,12 @@ int main(void)
   MX_I2C1_Init();
   MX_TIM6_Init();
   MX_TIM1_Init();
+  MX_TIM15_Init();
   /* USER CODE BEGIN 2 */
   lcd_init();
     HAL_TIM_Encoder_Start(&htim3, TIM_CHANNEL_ALL);
     HAL_TIM_Base_Start_IT(&htim6);
-
+    HAL_TIM_Base_Start(&htim15);
     HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
     BH1750_Init(&hbh1750A);
     for (int i = 0; i < 8; i++) {
@@ -148,25 +262,37 @@ int main(void)
   /* USER CODE BEGIN WHILE */
 
 
+
   while (1)
   {
+	  for (int i=0; i<=360; i++)
+	      {
+	        Stepper_rotate(i, 10);
+	        HAL_Delay(250);
+	      }
+	      for (int i=360; i>=0; i--)
+	      {
+	        Stepper_rotate(i, 10);
+	        HAL_Delay(250);
+	      }
 
-	  HAL_Delay(10);
-	    	if (mode==1){
-	    		pulse = (pulse + 10 > 10000) ? 10000 : pulse + 10;
-	    	} else {
-	    		pulse -= 10; // Decrease pulse by 10
-	    		        if (pulse < 0) {
-	    		            pulse = 0; // Clamp pulse to 0
-	    		        }
-	    	}
-	    	if (light >= value) {
-	    		mode = 0;
-	    	}
-	    	if (light < value) {
-	    		mode = 1;
-	    	}
-	    	TIM1->CCR1 = pulse;
+
+//	  HAL_Delay(10);
+//	    	if (mode==1){
+//	    		pulse = (pulse + 10 > 10000) ? 10000 : pulse + 10;
+//	    	} else {
+//	    		pulse -= 10; // Decrease pulse by 10
+//	    		        if (pulse < 0) {
+//	    		            pulse = 0; // Clamp pulse to 0
+//	    		        }
+//	    	}
+//	    	if (light >= value) {
+//	    		mode = 0;
+//	    	}
+//	    	if (light < value) {
+//	    		mode = 1;
+//	    	}
+//	    	TIM1->CCR1 = pulse;
 }
     /* USER CODE END WHILE */
 
