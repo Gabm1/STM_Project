@@ -20,60 +20,70 @@ void stepper_half_drive (int step)
 {
   switch (step){
          case 0:
-		  HAL_GPIO_WritePin(Engine_IN1_GPIO_Port, Engine_IN1_Pin,SET);   // IN1
-		  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_2, GPIO_PIN_RESET);   // IN2
-		  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_3, GPIO_PIN_RESET);   // IN3
-		  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_RESET);   // IN4
+        	 HAL_GPIO_WritePin(Engine_IN1_GPIO_Port, Engine_IN1_Pin,SET);   // IN1
+        	 		HAL_GPIO_WritePin(Engine_IN2_GPIO_Port, Engine_IN2_Pin, RESET);   // IN2
+        	 		HAL_GPIO_WritePin(Engine_IN3_GPIO_Port, Engine_IN3_Pin, RESET);   // IN3
+        	 		HAL_GPIO_WritePin(Engine_IN4_GPIO_Port, Engine_IN4_Pin, RESET);   // IN4
+
+
 		  break;
 
 	  case 1:
 		  HAL_GPIO_WritePin(Engine_IN1_GPIO_Port, Engine_IN1_Pin,SET);   // IN1
-		  HAL_GPIO_WritePin(Engine_IN2_GPIO_Port, Engine_IN2_Pin,SET);   // IN2
-		  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_3, GPIO_PIN_RESET);   // IN3
-		  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_RESET);   // IN4
+		  		HAL_GPIO_WritePin(Engine_IN2_GPIO_Port, Engine_IN2_Pin,SET);   // IN2
+		  		HAL_GPIO_WritePin(Engine_IN3_GPIO_Port, Engine_IN3_Pin, RESET);   // IN3
+		  		HAL_GPIO_WritePin(Engine_IN4_GPIO_Port, Engine_IN4_Pin, RESET);   // IN4
+
+
 		  break;
 
           case 2:
-		  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_1, GPIO_PIN_RESET);   // IN1
-		  HAL_GPIO_WritePin(Engine_IN2_GPIO_Port, Engine_IN2_Pin,SET);   // IN2
-		  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_3, GPIO_PIN_RESET);   // IN3
-		  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_RESET);   // IN4
+        	  HAL_GPIO_WritePin(Engine_IN1_GPIO_Port, Engine_IN1_Pin, RESET);   // IN1
+        	  		HAL_GPIO_WritePin(Engine_IN2_GPIO_Port, Engine_IN2_Pin,SET);   // IN2
+        	  		HAL_GPIO_WritePin(Engine_IN3_GPIO_Port, Engine_IN3_Pin, RESET);   // IN3
+        	  		HAL_GPIO_WritePin(Engine_IN4_GPIO_Port, Engine_IN4_Pin, RESET);   // IN4
+
+
 		  break;
 
 	  case 3:
-		  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_1, GPIO_PIN_RESET);   // IN1
-		  HAL_GPIO_WritePin(Engine_IN2_GPIO_Port, Engine_IN2_Pin,SET);   // IN2
-		  HAL_GPIO_WritePin(Engine_IN3_GPIO_Port, Engine_IN3_Pin,SET);   // IN3
-		  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_RESET);   // IN4
+		  HAL_GPIO_WritePin(Engine_IN1_GPIO_Port, Engine_IN1_Pin, RESET);   // IN1
+				  HAL_GPIO_WritePin(Engine_IN2_GPIO_Port, Engine_IN2_Pin,SET);   // IN2
+				  HAL_GPIO_WritePin(Engine_IN3_GPIO_Port, Engine_IN3_Pin,SET);   // IN3
+				  HAL_GPIO_WritePin(Engine_IN4_GPIO_Port, Engine_IN4_Pin, RESET);   // IN4
+
+
 		  break;
 
 	  case 4:
-		  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_1, GPIO_PIN_RESET);   // IN1
-		  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_2, GPIO_PIN_RESET);   // IN2
-		  HAL_GPIO_WritePin(Engine_IN3_GPIO_Port, Engine_IN3_Pin,SET);   // IN3
-		  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_RESET);   // IN4
-		  break;
+		  HAL_GPIO_WritePin(Engine_IN1_GPIO_Port, Engine_IN1_Pin, RESET);   // IN1
+		 		  HAL_GPIO_WritePin(Engine_IN2_GPIO_Port, Engine_IN2_Pin, RESET);   // IN2
+		 		  HAL_GPIO_WritePin(Engine_IN3_GPIO_Port, Engine_IN3_Pin,SET);   // IN3
+		 		  HAL_GPIO_WritePin(Engine_IN4_GPIO_Port, Engine_IN4_Pin, RESET);   // IN4
+
 
 	  case 5:
-		  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_1, GPIO_PIN_RESET);   // IN1
-		  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_2, GPIO_PIN_RESET);   // IN2
-		  HAL_GPIO_WritePin(Engine_IN3_GPIO_Port, Engine_IN3_Pin,SET);   // IN3
-		  HAL_GPIO_WritePin(Engine_IN4_GPIO_Port, Engine_IN4_Pin,SET);   // IN4
+		  HAL_GPIO_WritePin(Engine_IN1_GPIO_Port, Engine_IN1_Pin, RESET);   // IN1
+				  HAL_GPIO_WritePin(Engine_IN2_GPIO_Port, Engine_IN2_Pin, RESET);   // IN2
+				  HAL_GPIO_WritePin(Engine_IN3_GPIO_Port, Engine_IN3_Pin,SET);   // IN3
+				  HAL_GPIO_WritePin(Engine_IN4_GPIO_Port, Engine_IN4_Pin,SET);   // IN4
+
 		  break;
 
 	  case 6:
-		  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_1, GPIO_PIN_RESET);   // IN1
-		  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_2, GPIO_PIN_RESET);   // IN2
-		  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_3, GPIO_PIN_RESET);   // IN3
-		  HAL_GPIO_WritePin(Engine_IN4_GPIO_Port, Engine_IN4_Pin,SET);   // IN4
+		  HAL_GPIO_WritePin(Engine_IN1_GPIO_Port, Engine_IN1_Pin, RESET);   // IN1
+		 		  HAL_GPIO_WritePin(Engine_IN2_GPIO_Port, Engine_IN2_Pin, RESET);   // IN2
+		 		  HAL_GPIO_WritePin(Engine_IN3_GPIO_Port, Engine_IN3_Pin, RESET);   // IN3
+		 		  HAL_GPIO_WritePin(Engine_IN4_GPIO_Port, Engine_IN4_Pin,SET);   // IN4
+
 		  break;
 
 	  case 7:
 		  HAL_GPIO_WritePin(Engine_IN1_GPIO_Port, Engine_IN1_Pin,SET);   // IN1
-		  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_2, GPIO_PIN_RESET);   // IN2
-		  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_3, GPIO_PIN_RESET);   // IN3
-		  HAL_GPIO_WritePin(Engine_IN4_GPIO_Port, Engine_IN4_Pin,SET);   // IN4
-		  break;
+		  		  HAL_GPIO_WritePin(Engine_IN2_GPIO_Port, Engine_IN2_Pin, RESET);   // IN2
+		  		  HAL_GPIO_WritePin(Engine_IN3_GPIO_Port, Engine_IN3_Pin, RESET);   // IN3
+		  		  HAL_GPIO_WritePin(Engine_IN4_GPIO_Port, Engine_IN4_Pin,SET);   // IN4
+		  		  break;
 
 	}
 }

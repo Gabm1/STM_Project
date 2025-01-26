@@ -156,15 +156,12 @@ int main(void)
 
   while (1)
   {
-	  for (int i=0; i<=360; i++)
+
+
+	  for (int i=0; i<=900; i++)
 	      {
-	        Stepper_rotate(i, 10);
-	        HAL_Delay(250);
-	      }
-	      for (int i=360; i>=0; i--)
-	      {
-	        Stepper_rotate(i, 10);
-	        HAL_Delay(250);
+	        Stepper_rotate(i, 13);
+	        HAL_Delay(50);
 	      }
 
 
