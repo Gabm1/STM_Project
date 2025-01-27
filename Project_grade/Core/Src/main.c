@@ -53,14 +53,30 @@
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
-
+volatile _Bool USER_Button_state = 0;
+GPIO_PinState LD1_State = GPIO_PIN_RESET;
 /* USER CODE BEGIN PV */
 int light =0;
-int32_t value = 0;
+int value = 0;
 int mode = 0;
 int pulse = 0;
-float currentAngle = 0;
+uint8_t ster = 0;      // Control variable (1 = diode, 0 = stepper motor)
+uint8_t engineR = 0;   // Stepper motor control (1 = closing, 0 = opening)
+float currentAngle = 0;  // Stepper motor current position
+int maxAngle = 875;    // Max rotation angle
+int minAngle = 20;     // Min rotation angle
+// PID constants (tune these values)
+float Kp = 4.65;
+float Ki = 3;
+float Kd = 0.5;
 
+// PID variables
+float error = 0;
+float previous_error = 0;
+float integral = 0;
+float derivative = 0;
+float output = 0;
+float dt = 1;  // Sampling time in seconds
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -80,6 +96,10 @@ void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi)
 }
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
+	if(htim==&htim7){
+
+						light = BH1750_ReadIlluminance_lux(&hbh1750A);
+					}
 	if(htim==&htim6){
 
 				hagl_fill_rectangle(30, 45, 80, 100, BLACK);
@@ -87,15 +107,81 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 				wchar_t str[10];
 				swprintf(str, sizeof(str) / sizeof(wchar_t), L"%d", value);
 				hagl_put_text(str, 40, 55, YELLOW, font6x9);
-				light = BH1750_ReadIlluminance_lux(&hbh1750A);
+				//light = BH1750_ReadIlluminance_lux(&hbh1750A);
 				wchar_t lig[10];
 				swprintf(lig, sizeof(lig) / sizeof(wchar_t), L"%d", light);
 				hagl_put_text(lig, 40, 85, RED, font6x9);
 				while (lcd_is_busy()) {}
 				lcd_copy();
+				printf("Measurement: %d, Set value: %d\n\n", light, value);
+
+
 
 	}
+
 }
+
+// Define constants for readability
+#define PWM_MAX 10000
+#define PWM_MIN 0
+#define INTEGRAL_MAX 10000
+#define INTEGRAL_MIN -10000
+#define LIGHT_RANGE_FACTOR 0.5
+#define STEPPER_STEP_SIZE 10
+
+void updatePID() {
+    // Calculate error
+    error = value - light;
+
+    // Update integral with anti-windup
+    integral += error * dt;
+    if (integral > INTEGRAL_MAX) integral = INTEGRAL_MAX;
+    if (integral < INTEGRAL_MIN) integral = INTEGRAL_MIN;
+
+    // Calculate derivative
+    derivative = (error - previous_error) / dt;
+
+    // Compute PID output
+    output = (Kp * error) + (Ki * integral) + (Kd * derivative);
+
+    // Clamp output to valid PWM range
+    if (output > PWM_MAX) output = PWM_MAX;
+    if (output < PWM_MIN) output = PWM_MIN;
+
+    // Store error for next iteration
+    previous_error = error;
+}
+
+void control_logic() {
+    // Determine control mode (diode or stepper motor)
+//    if (currentAngle >=maxAngle || light<value) {
+//        ster = 1;  // Control diode
+//    } else {
+//        ster = 0;  // Control stepper motor
+//    }
+//
+//    if (ster == 1) {
+        // Run PID control for the diode
+        updatePID();
+        TIM1->CCR1 = (uint32_t)output;  // Set PWM output
+  // } else {
+        // Control stepper motor based on light
+        if (light >= value) {
+            engineR = 1;  // Close
+        } else {
+            engineR = 0;  // Open
+        }
+
+        // Stepper motor movement with angle constraints
+        if (engineR == 1 && currentAngle <= maxAngle) {
+            stepper_step_angle(STEPPER_STEP_SIZE, 0, 12);
+            currentAngle += STEPPER_STEP_SIZE;
+        } else if (engineR == 0 && currentAngle >= minAngle) {
+            stepper_step_angle(STEPPER_STEP_SIZE, 1, 12);
+            currentAngle -= STEPPER_STEP_SIZE;
+        }
+    }
+
 
 /* USER CODE END 0 */
 
@@ -136,10 +222,12 @@ int main(void)
   MX_TIM6_Init();
   MX_TIM1_Init();
   MX_TIM15_Init();
+  MX_TIM7_Init();
   /* USER CODE BEGIN 2 */
   lcd_init();
     HAL_TIM_Encoder_Start(&htim3, TIM_CHANNEL_ALL);
     HAL_TIM_Base_Start_IT(&htim6);
+    HAL_TIM_Base_Start_IT(&htim7);
     HAL_TIM_Base_Start(&htim15);
     HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
     BH1750_Init(&hbh1750A);
@@ -158,29 +246,41 @@ int main(void)
   {
 
 
-	  for (int i=0; i<=900; i++)
-	      {
-	        Stepper_rotate(i, 13);
-	        HAL_Delay(50);
-	      }
+	 // control_logic();
+	  //        HAL_Delay(1000);  // Run control loop periodically
 
+	  HAL_Delay(10);
+	    	if (mode==1){
+	    		pulse = (pulse + 5 > 10000) ? 10000 : pulse + 1; // increase by 1
+	    	} else {
+	    		pulse -= 10; // Decrease pulse by 5
+	    		        if (pulse < 0) {
+	    		            pulse = 0; // Clamp pulse to 0
+	    		        }
+	    	}
+	    	if (light >= value) {
+	    		mode = 0;
+	    	}
+	    	if (light < value) {
+	    		mode = 1;
+	    	}
+	    	TIM1->CCR1 = pulse;
 
-//	  HAL_Delay(10);
-//	    	if (mode==1){
-//	    		pulse = (pulse + 10 > 10000) ? 10000 : pulse + 10;
-//	    	} else {
-//	    		pulse -= 10; // Decrease pulse by 10
-//	    		        if (pulse < 0) {
-//	    		            pulse = 0; // Clamp pulse to 0
-//	    		        }
-//	    	}
-//	    	if (light >= value) {
-//	    		mode = 0;
-//	    	}
-//	    	if (light < value) {
-//	    		mode = 1;
-//	    	}
-//	    	TIM1->CCR1 = pulse;
+	    	if (light >= value) {
+	    	            engineR = 1;  // Close
+	    	        } else if(light < 0.8*value){
+	    	            engineR = 0;  // Open
+	    	        }
+
+	    	        // Stepper motor movement with angle constraints
+	    	        if (engineR == 1 && currentAngle <= maxAngle) {
+	    	            stepper_step_angle(STEPPER_STEP_SIZE, 0, 6);
+	    	            currentAngle += STEPPER_STEP_SIZE;
+	    	        } else if (engineR == 0 && currentAngle >= minAngle) {
+	    	            stepper_step_angle(STEPPER_STEP_SIZE, 1, 6);
+	    	            currentAngle -= STEPPER_STEP_SIZE;
+	    	        }
+
 }
     /* USER CODE END WHILE */
 
